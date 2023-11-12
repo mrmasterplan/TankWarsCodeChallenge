@@ -7,9 +7,9 @@ import math
 from src.vec import Vec
 from tank_operator import OperatorActions
 from tank_operator import GameState
+from tank_operator import GameObject
 import server_settings
 
-## Make server_settings.py and have the operators with settings loaded in there. Also color.
 ## Make game_client.py and settings for it - it should load a specific operator
 ## Create operator instructions.
 ##  Create install and run instructions
@@ -141,6 +141,9 @@ def game_over(winner):
 class GameEntity:
     def get_orientation_angle(self):
         return self.direction.get_orientation_angle()
+    
+    def get_gamestate_object(self):
+        return GameObject(Vec(self.position), Vec(self.direction))
         
     def apply_turn(self, operator_actions):
         # Calculate the current orientation angle
@@ -268,14 +271,19 @@ def game_loop(tanks):
         ## Update tank movement
         for tank in tanks:
             if tank.alive:
-                tankActions = tank.operator.get_actions()
-                tank.apply_turn(tankActions)
-                tank.move_player(tankActions)
-                shot = check_shots_fired(tank, tankActions)
-                if not shot is None:
-                    shots.append(shot)
+                # gamestate represents the input to the decision making for the operator. ie. a copy of the game world state..
+                gamestate = GameState(tank.get_gamestate_object(),
+                                      [tt.get_gamestate_object() for tt in tanks if tt != tank], ## game objects for other tanks
+                                      [ss.get_gamestate_object() for ss in shots])
+                tankActions = tank.operator.get_actions(gamestate)
+                if tankActions:
+                    tank.apply_turn(tankActions)
+                    tank.move_player(tankActions)
+                    shot = check_shots_fired(tank, tankActions)
+                    if not shot is None:
+                        shots.append(shot)
             
-            render_entity(tank, tank.image)
+                render_entity(tank, tank.image)
                         
         for ss in shots:
             shotOp = OperatorActions(0,1.0,False)

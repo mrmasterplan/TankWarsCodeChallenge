@@ -28,16 +28,16 @@ class GameState:
         self.shots = shots
 
 class OperatorActions:
-    def __init__(self, turn, engine_throttle, shoot):
+    def __init__(self, turn = 0.0, engine = 0.0, shoot = False):
         """
         Encapsulates the actions that a tank operator can take in a given frame.
         """
         self.turn = turn    # [-1.0 to 1.0] left to right respectively.
-        self.engine = engine_throttle  # [-1.0 to 1.0] reverse to full ahead.
+        self.engine = engine  # [-1.0 to 1.0] reverse to full ahead.
         self.shoot = shoot  # Set to True to fire cannon! Beware that cannon has to reload between shots.
 
 class TankOperator:
-    def tank_action(game_state):
+    def tank_action(self,game_state):
         """
         This method should be implemented by the user to define the tank's actions based on the game state.
 
@@ -46,10 +46,9 @@ class TankOperator:
         """
         raise NotImplementedError("This method should be overridden in a subclass")
 
-    @staticmethod
-    def get_operator_name():
+    def get_operator_name(self):
         """
-        Returns the name of the operator. MAX 12 long.
+        Returns the name of the operator.
 
         :return: String representing the operator's name.
         """
