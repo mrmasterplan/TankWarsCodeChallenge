@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from vec import Vec
+from src.vec import Vec
 # Vec is a 2D vector with member attributes x and y.
 
 class GameObject:
@@ -49,17 +49,9 @@ class TankOperator:
     @staticmethod
     def get_operator_name():
         """
-        Returns the name of the operator.
+        Returns the name of the operator. MAX 12 long.
 
         :return: String representing the operator's name.
         """
         raise NotImplementedError("This method should be overridden in a subclass")
 
-    @staticmethod
-    def get_operator_color():
-        """
-        Returns the color associated with the operator.
-
-        :return: Color value representing the operator's color.
-        """
-        raise NotImplementedError("This method should be overridden in a subclass")

@@ -5,11 +5,10 @@ import random
 import time
 import math
 from src.vec import Vec
-from TankOperator import OperatorActions
-from TankOperator import GameState
-from TankOperator import TankOperator
+from tank_operator import OperatorActions
+from tank_operator import GameState
+import server_settings
 
-## Put on github
 ## Make server_settings.py and have the operators with settings loaded in there. Also color.
 ## Make game_client.py and settings for it - it should load a specific operator
 ## Create operator instructions.
@@ -41,9 +40,6 @@ game_layout_display = pygame.display.set_mode(display_size.as_tuple())
 pygame.display.set_caption('Tanks Game 2')
 
 Resources = pygame.image.load("res/grass.png")
-
-tankRedImage = pygame.transform.scale(pygame.image.load('res/tankred.png'), tank_image_size)
-tankBlueImage = pygame.transform.scale(pygame.image.load('res/tankblue.png'), tank_image_size)
 
 shotImage = pygame.transform.scale(pygame.image.load('res/shot.png'), (15,20))
 
@@ -187,11 +183,11 @@ class GameEntity:
         return cappedX or cappedY
 
 class PlayerContext(GameEntity):   
-    def __init__(self, startX, startY, startDirectionX, startDirectionY, name, operator, image):
-        self.position = Vec(startX, startY)
-        self.direction = Vec(startDirectionX, startDirectionY)
+    def __init__(self, posVec, directionVec, operator, image):
+        self.position = posVec
+        self.direction = directionVec
         self.alive = True
-        self.name = name
+        self.name = operator.get_operator_name()
         self.operator = operator
         self.image = image
 
@@ -199,49 +195,7 @@ class Shot(GameEntity):
     def __init__(self, player_context):
         self.position = Vec(player_context.position)
         self.direction = Vec(player_context.direction)
-        self.playerContext = player_context
-    
-    
-class KeyboardOperator(TankOperator):
-    def __init__(self, fwdKey = pygame.K_UP, backKey = pygame.K_DOWN, leftKey = pygame.K_LEFT, rightKey = pygame.K_RIGHT, shootKey = pygame.K_KP0):
-        self.forwardKey = fwdKey #pygame.K_w
-        self.backKey = backKey #pygame.K_s
-        self.leftKey = leftKey #pygame.K_a
-        self.rightKey = rightKey #pygame.K_d
-        self.shootKey = shootKey #pygame.K_SPACE
-    
-    def get_actions(self):
-        actions = OperatorActions()
-
-        # Get the current state of all keyboard buttons
-        keys = pygame.key.get_pressed()
-
-        actions.engine = 0.0
-        # Check for 'w' and 's' for engine control
-        if keys[self.forwardKey]:
-            actions.engine = 1.0
-        if keys[self.backKey]:
-            actions.engine += -1.0
-
-        actions.turn = 0.0
-        # Check for 'a' and 'd' for turning
-        if keys[self.leftKey]:
-            actions.turn = -1.0
-        if keys[self.rightKey]:
-            actions.turn += 1.0
-
-        # Check if spacebar is pressed for shooting
-        actions.shoot = keys[self.shootKey]
-
-        return actions
-
-class DummyOperator(TankOperator):
-    def get_actions(self):
-        actions = OperatorActions()
-        actions.turn = -1.0
-        actions.shoot = True
-        return actions
-    
+        self.playerContext = player_context   
 
 shots_cooldown_expiry = {}    
 def check_shots_fired(player_context, operator_actions):
@@ -324,8 +278,7 @@ def game_loop(tanks):
             render_entity(tank, tank.image)
                         
         for ss in shots:
-            shotOp = OperatorActions()
-            shotOp.engine = 1.0
+            shotOp = OperatorActions(0,1.0,False)
             if ss.move_player(shotOp, shot_speed):
                 #shot reached border
                 shots.remove(ss)
@@ -372,18 +325,30 @@ def game_loop(tanks):
     return winner
         
 ########################################### ACTION!
-        
 game_intro() #TODO:Prod
-#tanks = init_players()
 
-tankRedOperator = KeyboardOperator(pygame.K_w,pygame.K_s, pygame.K_a, pygame.K_d, pygame.K_SPACE) #WASD player
-tankBlueOperator = KeyboardOperator()    #arrow-key operator
+operators_and_start_pos = server_settings.get_tank_operators_and_starting_positions()
 
-tanks  = [PlayerContext(50, 50, -1, -1, "Red", tankRedOperator, tankRedImage),
-          PlayerContext(display_size.x-50, display_size.y-50, 1, 1, "Blue", tankBlueOperator, tankBlueImage) ]#,
-          #PlayerContext(display_size.x-50, 50, 1, -1, "Green", DummyOperator(), tankBlueImage)]
+starting_positions = { "red"    : (Vec(50,50),Vec(-1,-1)), #red is upper left corner
+                       "blue"   : (Vec(display_size.x-50,50),Vec(1,-1)), #blue is upper right corner
+                       "yellow" : (Vec(50,display_size.y-50),Vec(-1,1)), #Yellow is lower left corner
+                       "green"  : (Vec(display_size.x-50,display_size.y-50),Vec(1,1)), #Green is lower right corner
+                      }
+
+tank_images = {
+    "red": pygame.transform.scale(pygame.image.load('res/tankred.png'), tank_image_size),
+    "blue": pygame.transform.scale(pygame.image.load('res/tankblue.png'), tank_image_size), #TODO: IMAGES!
+    "yellow":pygame.transform.scale(pygame.image.load('res/tankblue.png'), tank_image_size),
+    "green":pygame.transform.scale(pygame.image.load('res/tankblue.png'), tank_image_size),
+}
+
+player_tanks = [PlayerContext(starting_positions[pos_name][0], 
+                              starting_positions[pos_name][1], 
+                              operator, 
+                              tank_images[pos_name])
+                                for pos_name, operator in operators_and_start_pos.items() if operator is not None]
 
 
-winner = game_loop(tanks)
+winner = game_loop(player_tanks)
 game_over(winner) #TODO:Prod
 pygame.quit()

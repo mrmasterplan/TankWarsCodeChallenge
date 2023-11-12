@@ -13,3 +13,9 @@ Welcome to the Tank Wars Game project! This game is an exciting, fast-paced batt
 
 Clone the repository and dive into the world of tank warfare. Modify, extend, or just enjoy playing the game!
 
+### Requirements
+
+install python version 3
+pip install pygame
+
+
