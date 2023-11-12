@@ -79,32 +79,32 @@ class OperatorTCPadaptor_Client:
         return None != self.bytes_to_send #True if more work, call again asap.
 
 
-class MockTankOperator(TankOperator):
-    def tank_action(self, game_state):
-        return OperatorActions(0.5,0.1,True)
+# class MockTankOperator(TankOperator):
+#     def tank_action(self, game_state):
+#         return OperatorActions(0.5,0.1,True)
 
-    def get_operator_name(self):
-        return "MockOperator"
+#     def get_operator_name(self):
+#         return "MockOperator"
 
-ss = OperatorTCPadaptor_Server('localhost')
-cc = OperatorTCPadaptor_Client('localhost', ss.tcp_server.serverPort, MockTankOperator())
-nn = None
-while not nn:
-    nn = ss.get_operator_name()
-    cc.run_client()
+# ss = OperatorTCPadaptor_Server('localhost')
+# cc = OperatorTCPadaptor_Client('localhost', ss.tcp_server.serverPort, MockTankOperator())
+# nn = None
+# while not nn:
+#     nn = ss.get_operator_name()
+#     cc.run_client()
     
-print(nn)
+# print(nn)
 
-from src.vec import Vec
-from tank_operator import GameObject
-vv = Vec(1,1)
-gg = GameObject(vv, vv)
+# from src.vec import Vec
+# from tank_operator import GameObject
+# vv = Vec(1,1)
+# gg = GameObject(vv, vv)
 
 
-while True:
-    aa = ss.tank_action(GameState(gg, [gg,gg,gg], [gg,gg,gg,gg,gg]))
-    if aa:
-        print(aa.turn, aa.engine, aa.shoot)
-    cc.run_client()
-    time.sleep(1/30)
+# while True:
+#     aa = ss.tank_action(GameState(gg, [gg,gg,gg], [gg,gg,gg,gg,gg]))
+#     if aa:
+#         print(aa.turn, aa.engine, aa.shoot)
+#     cc.run_client()
+#     time.sleep(1/30)
     

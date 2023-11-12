@@ -10,7 +10,8 @@ from tank_operator import GameState
 from tank_operator import GameObject
 import server_settings
 
-## Make game_client.py and settings for it - it should load a specific operator
+## Test tcp client in server.
+## Create connect-wait screen in server.
 ## Create operator instructions.
 ##  Create install and run instructions
 ## Send to Nico :-)
