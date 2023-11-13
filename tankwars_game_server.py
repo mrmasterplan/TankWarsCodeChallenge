@@ -15,11 +15,12 @@ import server_settings
 
 ## Improve client: keypreses and run arg ip:port
 ## Create  instructions.
-## Make game time out or similar..
+## Make game time out or similar.. Make a NPC chopper that kills random tanks!
+## Test out making an operator
 
 ## OptionaL_
 ## Make obstacles (mountains?)
-## Power Ups? Shield or Rapid Fire
+## Power Ups? Shield or Rapid Fire (HEalth?)
 ## Full screen..
 
 ## BUGS!!
@@ -41,15 +42,15 @@ shot_speed = 15.0
 tank_shots_cooldown = 1.2  #seconds
 
 game_layout_display = pygame.display.set_mode(display_size.as_tuple())
-pygame.display.set_caption('Tanks Game 2')
+pygame.display.set_caption('Tank Wars - Code Challenge')
 
-Resources = pygame.image.load("res/grass.png")
+icon = pygame.image.load("res/tank_alpha.png")
 
 # geometry of tank and its turret
 
 shotImage = pygame.transform.scale(pygame.image.load('res/shot.png'), (20,8))
 
-pygame.display.set_icon(Resources)
+pygame.display.set_icon(icon)
 
 # colors
 wheat = (245, 222, 179)
@@ -138,10 +139,7 @@ def game_over(winner):
         pygame.display.update()
 
         clock.tick(15)
-        
-
-        
-        
+           
 class GameEntity:
     def get_orientation_angle(self):
         return self.direction.get_orientation_angle()
