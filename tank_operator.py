@@ -37,7 +37,7 @@ class OperatorActions:
         self.shoot = shoot  # Set to True to fire cannon! Beware that cannon has to reload between shots.
 
 class TankOperator:
-    def tank_action(self,game_state):
+    def get_tank_action(self,game_state):
         """
         This method should be implemented by the user to define the tank's actions based on the game state.
 

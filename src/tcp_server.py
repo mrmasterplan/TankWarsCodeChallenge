@@ -10,7 +10,7 @@ class TcpServer:
         
         self.inited = False
         self.connected = False
-        self.debug = True
+        self.debug = False
         
         self.run_server(None)
         

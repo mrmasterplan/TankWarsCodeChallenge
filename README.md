@@ -1,6 +1,6 @@
 # Tank Wars Game
 
-Welcome to the Tank Wars Game project! This game is an exciting, fast-paced battle where players maneuver tanks in a strategic environment, aiming to outwit and outlast their opponents. The game is developed in Python, utilizing the Pygame library for rendering and game logic.
+Welcome to the Tank Wars Game project! This game is an exciting, fast-paced battle where players maneuver up to four tanks in a strategic environment, aiming to outwit and outlast their opponents. The game is developed in Python, utilizing the Pygame library for rendering and game logic.
 
 ## Key Features
 
@@ -23,7 +23,7 @@ Clone the repository and dive into the world of tank warfare. Modify, extend, or
 The goal of the Tank wars challenge is build a Tank Operator BOT that cna play the Tank Wars Game - and win glory for your team!
 
 For the Tank wars code challenge, you will have to implement the "my_tank_operator.py" file.
-- Implement the "tank_action" function: A function that is called in real time with the current game state - and returns the actions your tank bot will take. You will have to implement logic that continuously evaluates the other tanks positions etc. and shots being fired, and decide what to do.
+- Implement the "get_tank_action" function: A function that is called in real time with the current game state - and returns the actions your tank bot will take. You will have to implement logic that continuously evaluates the other tanks positions etc. and shots being fired, and decide what to do.
 - Implement the "get_operator_name" function: give your operator bot a name.
 
 You can play Tank Wars in two ways:
@@ -32,7 +32,7 @@ You can play Tank Wars in two ways:
 
 To start the game locally:
 - Run "python tankwars_game_server.py".
-- Optionally change server settings (such as what and how many bots to play against in "server_settings.py".
+- Optionally change server settings (such as which bots to play against in "server_settings.py").
 
 ## Enjoy!
 

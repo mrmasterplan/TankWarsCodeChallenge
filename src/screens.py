@@ -45,6 +45,7 @@ def msg_screen_topleft(surface, message, color, topleft, size="small"):
 def game_wait_for_players_screen(surface, clock, color_operator_dict):
 
     while True:
+        surface.fill((0, 0, 0))
         start_pressed = False
         for event in pygame.event.get():
             # print(event)

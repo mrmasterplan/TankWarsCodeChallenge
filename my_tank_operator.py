@@ -10,5 +10,9 @@ class MyTankOperator(TankOperator):
     def get_operator_name(self):
         return self.name
     
-    def get_actions(self, gamestate):
-        return OperatorActions()
+    def get_tank_action(self, gamestate):
+        actions = OperatorActions()
+
+        ## Figure out what to do!
+
+        return actions

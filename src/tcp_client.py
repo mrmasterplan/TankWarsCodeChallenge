@@ -12,7 +12,7 @@ class TcpClient:
         self.connect_in_progress = False
         self.connect_start_time = None
         self.connected = False
-        self.debug = True
+        self.debug = False
         
     def is_connected(self):
         return self.connected

@@ -13,8 +13,7 @@ from tank_operator import GameObject
 from src.screens import game_wait_for_players_screen
 import server_settings
 
-## Test tcp client in server.
-## Create connect-wait screen in server.
+## Improve client: keypreses and run arg ip:port
 ## Create  instructions.
 ## Make game time out or similar..
 
@@ -22,6 +21,9 @@ import server_settings
 ## Make obstacles (mountains?)
 ## Power Ups? Shield or Rapid Fire
 ## Full screen..
+
+## BUGS!!
+## Dead tank still gets hit!
 
 display_size = Vec(1200, 800)
 
@@ -277,7 +279,7 @@ def game_loop(tanks):
                 gamestate = GameState(tank.get_gamestate_object(),
                                       [tt.get_gamestate_object() for tt in tanks if tt != tank], ## game objects for other tanks
                                       [ss.get_gamestate_object() for ss in shots])
-                tankActions = tank.operator.get_actions(gamestate)
+                tankActions = tank.operator.get_tank_action(gamestate)
                 if tankActions:
                     tank.apply_turn(tankActions)
                     tank.move_player(tankActions)
@@ -349,9 +351,9 @@ starting_positions = { "red"    : (Vec(50,50),Vec(-1,-1)), #red is upper left co
 
 tank_images = {
     "red": pygame.transform.scale(pygame.image.load('res/tankred.png'), tank_image_size),
-    "blue": pygame.transform.scale(pygame.image.load('res/tankblue.png'), tank_image_size), #TODO: IMAGES!
-    "yellow":pygame.transform.scale(pygame.image.load('res/tankblue.png'), tank_image_size),
-    "green":pygame.transform.scale(pygame.image.load('res/tankblue.png'), tank_image_size),
+    "blue": pygame.transform.scale(pygame.image.load('res/tankblue.png'), tank_image_size),
+    "yellow":pygame.transform.scale(pygame.image.load('res/tankyellow.png'), tank_image_size),
+    "green":pygame.transform.scale(pygame.image.load('res/tankgreen.png'), tank_image_size),
 }
 
 player_tanks = [PlayerContext(starting_positions[pos_name][0], 

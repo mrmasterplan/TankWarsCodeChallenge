@@ -14,7 +14,7 @@ class KeyboardOperator(TankOperator):
     def get_operator_name(self):
         return self.name
     
-    def get_actions(self, _):
+    def get_tank_action(self, _):
         actions = OperatorActions(0,0,False)
 
         # Get the current state of all keyboard buttons

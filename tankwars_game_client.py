@@ -15,12 +15,12 @@ def run_client():
     print("Press Ctrl-C or close the window to quit client")
 
     try:
-        op = OperatorTCPadaptor_Client(client_settings.serverIp, client_settings.serverPort, client_settings.MyTankOperator)
+        op = OperatorTCPadaptor_Client(client_settings.serverIp, client_settings.serverPort, client_settings.tankoperator)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     return
-                if event.type == pygame.K_g:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_g:
                     print("g")
 
             while op.run_client():
@@ -32,8 +32,8 @@ def run_client():
         print(f"An error occurred: {e}")
 
     finally:
-        print("Quitting Client")
         pygame.quit()
 
 if __name__ == "__main__":
     run_client()
+    print("Quitting Client")

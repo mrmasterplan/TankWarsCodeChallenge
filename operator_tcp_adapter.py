@@ -21,6 +21,9 @@ class OperatorTCPadaptor_Server(TankOperator):
 
     def is_client_connected(self):
         return self.tcp_server.connected
+    
+    def get_connection_info_string(self):
+        return self.tcp_server.serverIp + ":" + str(self.tcp_server.serverPort)
 
     def _run_server(self, object_to_send = None):
         try:
@@ -40,7 +43,7 @@ class OperatorTCPadaptor_Server(TankOperator):
             self.json_protocol = JSONProtocol()
   
             
-    def tank_action(self, game_state):
+    def get_tank_action(self, game_state):
         self._run_server(game_state)
         return self.latestOperatorAction #always repeat latest action if nothing new
 
@@ -68,7 +71,7 @@ class OperatorTCPadaptor_Client:
                 if jsonresponse:
                     try:
                         gamestate = GameState(**jsonresponse)
-                        action = self.tankoperator.tank_action(gamestate)
+                        action = self.tankoperator.get_tank_action(gamestate)
                         self.bytes_to_send = self.json_protocol.encode(action)
                     except:
                         print("Message from server not understood: " + str(jsonresponse))

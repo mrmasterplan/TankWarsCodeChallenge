@@ -3,8 +3,8 @@ from keyboard_operator import KeyboardOperator
 from dummy_operator import DummyOperator
 
 # Change these to reflect the server you want to connect to!
-serverIp = ""
-serverPort = 10023
+serverIp = "localhost"
+serverPort = 54779
 
 """ When your MyTankOperator is ready - use it like this: """
 #tankoperator = MyTankOperator()
