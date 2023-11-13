@@ -12,11 +12,8 @@ import server_settings
 
 ## Test tcp client in server.
 ## Create connect-wait screen in server.
-## Create operator instructions.
-##  Create install and run instructions
-## Send to Nico :-)
+## Create  instructions.
 ## Make game time out or similar..
-## Better tank pngs (make one with a colored letter on it!?) or make interface so they can provide it?
 
 ## OptionaL_
 ## Make obstacles (mountains?)
@@ -28,7 +25,9 @@ display_size = Vec(1200, 800)
 
 intro_display_seconds = 1 #5 #TODO:Prod
 game_fps = 30
-tank_image_size = (50, 50)
+tnk_width = 56
+tnk_height = 40
+tank_image_size = (tnk_width, tnk_height)
 
 ##Movement:
 tank_turn_speed = tank_turn_speed = math.radians(7.5)
@@ -42,7 +41,9 @@ pygame.display.set_caption('Tanks Game 2')
 
 Resources = pygame.image.load("res/grass.png")
 
-shotImage = pygame.transform.scale(pygame.image.load('res/shot.png'), (15,20))
+# geometry of tank and its turret
+
+shotImage = pygame.transform.scale(pygame.image.load('res/shot.png'), (20,8))
 
 pygame.display.set_icon(Resources)
 
@@ -64,9 +65,7 @@ light_green = (0, 255, 0)
 
 # for picking current time for the frames per second
 clock = pygame.time.Clock()
-# geometry of tank and its turret
-tnk_width = 40
-tnk_height = 20
+
 
 s_font = pygame.font.SysFont("Arial", 25)
 m_font = pygame.font.SysFont("Arial", 50)
@@ -308,7 +307,7 @@ def game_loop(tanks):
                     tank_rect = pygame.Rect(tank.position.x, tank.position.y, tank_image_size[0], tank_image_size[1])
                     if shot_rect.colliderect(tank_rect):
                         shots.remove(shot)
-                        explosions.append(Explosion(shot.position.as_tuple(),3))
+                        explosions.append(Explosion(tank.position.as_tuple(),3))
                         tank.alive = False
         
         tanksalive = [tt for tt in tanks if tt.alive]
@@ -334,7 +333,7 @@ def game_loop(tanks):
     return winner
         
 ########################################### ACTION!
-game_intro() #TODO:Prod
+#game_intro() #TODO:Prod
 
 operators_and_start_pos = server_settings.get_tank_operators_and_starting_positions()
 
