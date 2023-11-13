@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import pygame
+pygame.init()
+
 import random
 import time
 import math
@@ -8,6 +10,7 @@ from src.vec import Vec
 from tank_operator import OperatorActions
 from tank_operator import GameState
 from tank_operator import GameObject
+from src.screens import game_wait_for_players_screen
 import server_settings
 
 ## Test tcp client in server.
@@ -17,9 +20,8 @@ import server_settings
 
 ## OptionaL_
 ## Make obstacles (mountains?)
-## Remove or fade broken tanks
-
-pygame.init()
+## Power Ups? Shield or Rapid Fire
+## Full screen..
 
 display_size = Vec(1200, 800)
 
@@ -335,7 +337,9 @@ def game_loop(tanks):
 ########################################### ACTION!
 #game_intro() #TODO:Prod
 
-operators_and_start_pos = server_settings.get_tank_operators_and_starting_positions()
+
+operators_and_start_pos = game_wait_for_players_screen(game_layout_display, clock, 
+                                server_settings.get_tank_operators_and_starting_positions() )
 
 starting_positions = { "red"    : (Vec(50,50),Vec(-1,-1)), #red is upper left corner
                        "blue"   : (Vec(display_size.x-50,50),Vec(1,-1)), #blue is upper right corner

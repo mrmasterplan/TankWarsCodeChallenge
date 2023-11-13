@@ -19,6 +19,9 @@ class OperatorTCPadaptor_Server(TankOperator):
         self.json_protocol = JSONProtocol()
         self.latestOperatorAction = OperatorActions()
 
+    def is_client_connected(self):
+        return self.tcp_server.connected
+
     def _run_server(self, object_to_send = None):
         try:
             bytes_to_send = None
