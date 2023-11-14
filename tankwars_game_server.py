@@ -10,22 +10,28 @@ from src.vec import Vec
 from tank_operator import OperatorActions
 from tank_operator import GameState
 from tank_operator import GameObject
+from src.countdown_timer import CountDownTimer
 from src.screens import game_wait_for_players_screen
+from src.screens import msg_screen_topleft
 import server_settings
 
 ## Create  instructions.
-## Make game time out or similar.. Make a NPC chopper that kills random tanks!
+### Installation of python + pygame tips.
+### What files to look in..
+### Where to start, what is in gamestate+operatoractions units, examples?
+### Game rules
 ## Test out making an operator
 
 ## OptionaL_
-## Make obstacles (mountains?)
-## Power Ups? Shield or Rapid Fire (HEalth?)
-## Full screen..
+## Turning turret...
 
 ## BUGS!!
-## Dead tank still gets hit!
+## tank/shot hitbox is too big? tank_rect should be position = center and rotated as image!
 
+fullscreen = 0 #pygame.FULLSCREEN
 display_size = Vec(1200, 800)
+
+game_time_out_secs = 4*60
 
 intro_display_seconds = 1 #5 #TODO:Prod
 game_fps = 30
@@ -40,7 +46,7 @@ tank_maxspeed = 3.5
 shot_speed = 15.0
 tank_shots_cooldown = 1.2  #seconds
 
-game_layout_display = pygame.display.set_mode(display_size.as_tuple())
+game_layout_display = pygame.display.set_mode(display_size.as_tuple(), flags=fullscreen)
 pygame.display.set_caption('Tank Wars - Code Challenge')
 
 icon = pygame.image.load("res/tank_alpha.png")
@@ -56,6 +62,7 @@ wheat = (245, 222, 179)
 
 white = (255, 255, 255)
 black = (0, 0, 0)
+grey = (110,110,110)
 blue = (0, 0, 255)
 
 red = (200, 0, 0)
@@ -74,7 +81,7 @@ clock = pygame.time.Clock()
 s_font = pygame.font.SysFont("Arial", 25)
 m_font = pygame.font.SysFont("Arial", 50)
 l_font = pygame.font.SysFont("Arial", 85)
-vs_font = pygame.font.SysFont("Arial", 25)
+vs_font = pygame.font.SysFont("Arial", 18)
 
 # defining function to get the fonts and sizes assigned with them by size names by default size="small"
 def txt_object(txt, color, size="small"):
@@ -122,18 +129,19 @@ def game_intro():
 
 # function for game Over screen
 def game_over(winner):
-    game_over = True
+    print("Winner(s): " + winner)
 
-    while game_over:
+    while True:
         for event in pygame.event.get():
             # print(event)
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
                 pygame.quit()
                 quit()
 
         game_layout_display.fill(black)
-        msg_screen("Game Over - Winner is:", white, -100, size="medium")
-        msg_screen(winner, wheat, 0, size="large")
+        msg_screen("Game Over - Winner(s):", white, -100, size="medium")
+        msg_screen(winner, white, 0, size="medium")
+        msg_screen("Press any key to quit", wheat, 100, size="small")
 
         pygame.display.update()
 
@@ -194,6 +202,7 @@ class PlayerContext(GameEntity):
         self.name = operator.get_operator_name()
         self.operator = operator
         self.image = image
+        self.kills = 0
 
 class Shot(GameEntity):
     def __init__(self, player_context):
@@ -254,6 +263,7 @@ def draw_explosion(screen, explosion):
         
 def game_loop(tanks):
     winner = None
+    count_down_timer = CountDownTimer(game_time_out_secs)
         
     shots = []
     explosions = []
@@ -271,20 +281,20 @@ def game_loop(tanks):
 
         ## Update tank movement
         for tank in tanks:
-            if tank.alive:
-                # gamestate represents the input to the decision making for the operator. ie. a copy of the game world state..
-                gamestate = GameState(tank.get_gamestate_object(),
-                                      [tt.get_gamestate_object() for tt in tanks if tt != tank], ## game objects for other tanks
-                                      [ss.get_gamestate_object() for ss in shots])
-                tankActions = tank.operator.get_tank_action(gamestate)
-                if tankActions:
-                    tank.apply_turn(tankActions)
-                    tank.move_player(tankActions)
-                    shot = check_shots_fired(tank, tankActions)
-                    if not shot is None:
-                        shots.append(shot)
-            
-                render_entity(tank, tank.image)
+            # if tank.alive:
+            # gamestate represents the input to the decision making for the operator. ie. a copy of the game world state..
+            gamestate = GameState(tank.get_gamestate_object(),
+                                    [tt.get_gamestate_object() for tt in tanks if tt != tank], ## game objects for other tanks
+                                    [ss.get_gamestate_object() for ss in shots])
+            tankActions = tank.operator.get_tank_action(gamestate)
+            if tankActions:
+                tank.apply_turn(tankActions)
+                tank.move_player(tankActions)
+                shot = check_shots_fired(tank, tankActions)
+                if not shot is None:
+                    shots.append(shot)
+        
+            render_entity(tank, tank.image)
                         
         for ss in shots:
             shotOp = OperatorActions(0,1.0,False)
@@ -306,18 +316,41 @@ def game_loop(tanks):
             for tank in tanks:
                 if tank != shot.playerContext:
                     tank_rect = pygame.Rect(tank.position.x, tank.position.y, tank_image_size[0], tank_image_size[1])
+                    # TODO: tank_rect should be position = center and rotated as image!
                     if shot_rect.colliderect(tank_rect):
+                        shot.playerContext.kills += 1
                         shots.remove(shot)
                         explosions.append(Explosion(tank.position.as_tuple(),3))
-                        tank.alive = False
+                        tanks.remove(tank)
+                        #if tank was operated over network, send game over message
+                        try:
+                            tank.operator.send_game_over_message("Game Over: you lose")
+                        except:
+                            pass # probably not a OperatorTCPadaptor_Server
         
-        tanksalive = [tt for tt in tanks if tt.alive]
+        #tanksalive = [tt for tt in tanks if tt.alive]
         
-        if len(tanksalive) == 1:
-            winner = tanksalive[0].name
-        if len(tanksalive) == 0:
+        if len(tanks) == 1:
+            winner = tanks[0].name
+            try:
+                tanks[0].operator.send_game_over_message("Game Over: you WIN!")
+            except:
+                pass # probably not a OperatorTCPadaptor_Server
+        if len(tanks) == 0:
             #Hmm?
             winner = "Draw - no one survived"
+
+        timed_out, timer_string = count_down_timer.get_countdown_reached_and_timer_string()
+        msg_screen_topleft(game_layout_display, timer_string,grey,(5,5),"vsmall")
+        if timed_out:
+            max_kills = max(obj.kills for obj in tanks)
+            top_scorers = [obj for obj in tanks if obj.kills == max_kills]
+            winner = ', '.join([tt.name for tt in top_scorers])
+            for top_tank in top_scorers:
+                try:
+                    top_tank.operator.send_game_over_message("Game Over: you WIN!")
+                except:
+                    pass # probably not a OperatorTCPadaptor_Server
         
         pygame.display.update()
         clock.tick(game_fps)
@@ -361,5 +394,5 @@ player_tanks = [PlayerContext(starting_positions[pos_name][0],
 
 
 winner = game_loop(player_tanks)
-game_over(winner) #TODO:Prod
+game_over(winner)
 pygame.quit()

@@ -6,7 +6,7 @@ from dummy_operator import DummyOperator
 
 # Change these to reflect the server you want to connect to!
 serverIp = "localhost"
-serverPort = 59068
+serverPort = 49909
 
 """ When your MyTankOperator is ready - use it like this: """
 #tankoperator = MyTankOperator()

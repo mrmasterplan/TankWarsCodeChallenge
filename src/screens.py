@@ -21,7 +21,7 @@ color_lookup = {"red":red, "blue": blue, "green": green, "yellow": yellow}
 s_font = pygame.font.SysFont("Arial", 25)
 m_font = pygame.font.SysFont("Arial", 50)
 l_font = pygame.font.SysFont("Arial", 85)
-vs_font = pygame.font.SysFont("Arial", 25)
+vs_font = pygame.font.SysFont("Arial", 18)
 
 # defining function to get the fonts and sizes assigned with them by size names by default size="small"
 def txt_object(txt, color, size="small"):

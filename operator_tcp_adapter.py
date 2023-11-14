@@ -12,6 +12,10 @@ class NameResponse:
     def __init__(self, name):
         self.name = name
 
+class GameOverMessage:
+    def __init__(self, game_over_message):
+        self.game_over_message = game_over_message
+
 class OperatorTCPadaptor_Server(TankOperator):
     def __init__(self, serverIp):
         self.tcp_server = TcpServer(serverIp)
@@ -52,8 +56,9 @@ class OperatorTCPadaptor_Server(TankOperator):
         # designed for polling
         self._run_server()
         return self.name
-
-             
+    
+    def send_game_over_message(self, message):
+        self._run_server(GameOverMessage(message))             
 
 class OperatorTCPadaptor_Client:
     def __init__(self, serverIp, serverPort, tankoperator):
@@ -65,7 +70,8 @@ class OperatorTCPadaptor_Client:
 
         self._messages_received = 0
         self._actions_sent = 0
-        
+        self.game_over_message = None
+
     def run_client(self):
         try:
             received_bytes = self.tcp_client.run_client(self.bytes_to_send)
@@ -81,7 +87,10 @@ class OperatorTCPadaptor_Client:
                         self.bytes_to_send = self.json_protocol.encode(action)
                         self._actions_sent += 1
                     except:
-                        print("Message from server not understood: " + str(lastmessage_json))
+                        try:
+                            self.game_over_message = GameOverMessage(**lastmessage_json).game_over_message
+                        except:
+                            print("Message from server not understood: " + str(lastmessage_json))
         except:
             self.json_protocol = JSONProtocol()
             self.bytes_to_send = None

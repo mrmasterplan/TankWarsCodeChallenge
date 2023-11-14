@@ -37,15 +37,21 @@ def run_client(port=None):
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     return
 
-            while op.run_client():
-                pass
+            more_data = True
+            while more_data:
+                more_data = op.run_client()
             
             txtlines = ["Tank Wars Game Client: Headless mode",
                         "Server=" + client_settings.serverIp + ":" + str(port) + " \tOperatorType="+ str(type(client_settings.tankoperator)),
                         "Client connected: " + str(op.tcp_client.connected),
                         "GameState msg received #: " + str(op._messages_received),
-                        "Actions sent #: " + str(op._actions_sent)
+                        "Actions sent #: " + str(op._actions_sent),
+                        "Press ESC to quit"
                         ]
+            
+            if op.game_over_message:
+                txtlines.append(op.game_over_message)
+
             print_lines_on_surface(clientscreen, txtlines, (200,200,200))
             pygame.display.update()
             clock.tick(client_fps)
