@@ -44,7 +44,7 @@ class TcpServer:
                 bytesrecv = None
                 
                 try:
-                    bytesrecv = self.client_socket.recv(1024)
+                    bytesrecv = self.client_socket.recv(4*1024)
                 except socket.error as e:
                     if e.errno != 10035: #recv will trhow this error if nothing in the pipes!
                         raise e 

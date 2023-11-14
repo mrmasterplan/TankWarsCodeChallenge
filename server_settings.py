@@ -19,6 +19,6 @@ def get_tank_operators_and_starting_positions():
     return {
         "red"   : KeyboardOperator("WASD-tank", pygame.K_w,pygame.K_s, pygame.K_a, pygame.K_d, pygame.K_SPACE),
         "blue"  : KeyboardOperator("BlueBob"), #Default arrow keys
-        #"yellow": OperatorTCPadaptor_Server(server_ip),
+        "yellow": OperatorTCPadaptor_Server(server_ip),
         "green" : MyTankOperator(),
     }

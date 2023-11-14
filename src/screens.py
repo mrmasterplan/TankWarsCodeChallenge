@@ -41,6 +41,18 @@ def msg_screen_topleft(surface, message, color, topleft, size="small"):
     txtSrf, textRect = txt_object(message, color, size)
     textRect.topleft = topleft
     surface.blit(txtSrf, textRect)
+
+def print_lines_on_surface(surface, lines, color):
+    
+    topleft = (50,50)
+
+    def nextline(topleft):
+        line_height = 60
+        return (50, topleft[1] + line_height)
+        
+    for ll in lines:
+        msg_screen_topleft(surface, ll, color, topleft)
+        topleft = nextline(topleft)
     
 def game_wait_for_players_screen(surface, clock, color_operator_dict):
 

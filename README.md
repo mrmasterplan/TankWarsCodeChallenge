@@ -34,6 +34,12 @@ To start the game locally:
 - Run "python tankwars_game_server.py".
 - Optionally change server settings (such as which bots to play against in "server_settings.py").
 
+To connect to a game server on LAN:
+- Obtain IP of server on LAN
+- Server opens random available ports for each network client, get one of those
+- Add ip and port to client_settings.py (and specify which operator to use also)
+- Run "python tankwars_game_client.py"
+
 ## Enjoy!
 
 

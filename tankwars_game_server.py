@@ -13,11 +13,9 @@ from tank_operator import GameObject
 from src.screens import game_wait_for_players_screen
 import server_settings
 
-## Improve client: keypreses and run arg ip:port
 ## Create  instructions.
 ## Make game time out or similar.. Make a NPC chopper that kills random tanks!
 ## Test out making an operator
-## server and client: consume all messages on stream.
 
 ## OptionaL_
 ## Make obstacles (mountains?)
