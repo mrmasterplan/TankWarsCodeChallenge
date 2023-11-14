@@ -17,6 +17,7 @@ import server_settings
 ## Create  instructions.
 ## Make game time out or similar.. Make a NPC chopper that kills random tanks!
 ## Test out making an operator
+## server and client: consume all messages on stream.
 
 ## OptionaL_
 ## Make obstacles (mountains?)
