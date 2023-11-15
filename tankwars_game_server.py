@@ -9,7 +9,8 @@ import math
 from src.vec import Vec
 from tank_operator import OperatorActions
 from tank_operator import GameState
-from tank_operator import GameObject
+from tank_operator import TankObject
+from tank_operator import ShotObject
 from src.countdown_timer import CountDownTimer
 from src.screens import game_wait_for_players_screen
 from src.screens import msg_screen_topleft
@@ -21,6 +22,7 @@ import server_settings
 ### Where to start, what is in gamestate+operatoractions units, examples?
 ### Game rules
 ## Test out making an operator
+## Test with multiple clients..
 
 ## OptionaL_
 ## Turning turret...
@@ -39,22 +41,22 @@ tnk_height = 40
 tank_image_size = (tnk_width, tnk_height)
 
 ##Movement:
-tank_turn_speed = tank_turn_speed = math.radians(7.5)
+tank_turn_speed = math.radians(7.5)
+tank_turret_turn_speed = math.radians(20)
 tank_maxspeed = 3.5
 
 shot_speed = 15.0
 tank_shots_cooldown = 1.2  #seconds
 
+# Some resources
 game_layout_display = pygame.display.set_mode(display_size.as_tuple(), flags=fullscreen)
 pygame.display.set_caption('Tank Wars - Code Challenge')
 
 icon = pygame.image.load("res/tank_alpha.png")
-
-# geometry of tank and its turret
+pygame.display.set_icon(icon)
 
 shot_image = pygame.transform.scale(pygame.image.load('res/shot.png'), (20,8))
-
-pygame.display.set_icon(icon)
+turret_image = pygame.transform.scale(pygame.image.load('res/turret.png'), (80,19))
 
 # colors
 wheat = (245, 222, 179)
@@ -151,36 +153,42 @@ class GameEntity:
         return self.direction.get_orientation_angle()
     
     def get_gamestate_object(self):
-        return GameObject(Vec(self.position), Vec(self.direction))
-        
-    def apply_turn(self, operator_actions):
+        raise NotImplementedError()
+    
+    def turn_vector(vector, turn_action_scalar, max_turn_speed):
         # Calculate the current orientation angle
-        current_angle = math.atan2(self.direction.y, self.direction.x)
+        current_angle = math.atan2(vector.y, vector.x)
         
         # Cap turning:
-        turn_value = max(-1.0, min(1.0, operator_actions.turn))
+        turn_value = max(-1.0, min(1.0, turn_action_scalar))
         
         # Calculate the change in angle based on the turn value and turn speed
         # The turn value is between -1 and 1, so multiplying by the turn speed gives the angle change
-        angle_change = turn_value * tank_turn_speed
+        angle_change = turn_value * max_turn_speed
         
         # Update the current angle based on the angle change
         new_angle = current_angle + angle_change
         
         # Calculate the new orientation vector from the new angle
-        self.direction.x = math.cos(new_angle)
-        self.direction.y = math.sin(new_angle)
+        vector.x = math.cos(new_angle)
+        vector.y = math.sin(new_angle)
+
+        vector.normalize()
+        
+    def apply_turn(self, operator_actions):
+        GameEntity.turn_vector(self.direction, operator_actions.turn, tank_turn_speed)
+        # Special gotcha: when tank turns, turret turns with it!
+        GameEntity.turn_vector(self.turret_direction, operator_actions.turn, tank_turn_speed)
+        # But turret also turns independently..
+        GameEntity.turn_vector(self.turret_direction, operator_actions.turn_turret, tank_turret_turn_speed)
     
-    def move_player(self, operator_actions, maxspeed = tank_maxspeed):
-        # Normalize the orientation vector
-        self.direction.normalize()
-        
+    def move_check_boundary(self, operator_engine_scalar, maxspeed):
         # Cap Speed
-        operator_speed_value = max(-1.0, min(1.0, operator_actions.engine))
-        
-        # Update the player's position based on the normalized orientation and speed
-        self.position.x += self.direction.x * maxspeed * operator_speed_value
-        self.position.y += self.direction.y * maxspeed * operator_speed_value
+        operator_speed_value = max(-1.0, min(1.0, operator_engine_scalar))
+
+        move_vector = self.direction * operator_speed_value * maxspeed
+
+        self.position += move_vector
         
         def cap_value_zero_max(cap, max_val):
             if cap > max_val or cap < 0:
@@ -193,9 +201,9 @@ class GameEntity:
         
         return cappedX or cappedY
     
-    def render_entity(self):
-        ent_image = pygame.transform.rotate(self.image, -1.0 * self.get_orientation_angle())
-        ent_image_rect = ent_image.get_rect(center=self.position.as_tuple())
+    def _render_entity(self, image, angle, center_tuple ):
+        ent_image = pygame.transform.rotate(image, -1.0 * angle)
+        ent_image_rect = ent_image.get_rect(center=center_tuple ) #self.position.as_tuple())
 
         # Draw rotated images
         game_layout_display.blit(ent_image, ent_image_rect.topleft)
@@ -211,19 +219,35 @@ class GameEntity:
 class PlayerContext(GameEntity):   
     def __init__(self, posVec, directionVec, operator, image):
         self.position = posVec
-        self.direction = directionVec
+        self.direction = Vec(directionVec)
+        self.turret_direction = Vec(directionVec)
         # self.alive = True
         self.name = operator.get_operator_name()
         self.operator = operator
         self.image = image
+        self.turret_image = turret_image
         self.kills = 0
+    
+    def render_entity(self):
+        self._render_entity(self.image, self.direction.get_orientation_angle(), self.position.as_tuple())
+        self._render_entity(self.turret_image, self.turret_direction.get_orientation_angle(), self.position.as_tuple())
+
+
+    def get_gamestate_object(self):
+        return TankObject(Vec(self.position), Vec(self.direction), Vec(self.turret_direction))
 
 class Shot(GameEntity):
     def __init__(self, player_context, image):
         self.position = Vec(player_context.position)
-        self.direction = Vec(player_context.direction)
+        self.direction = Vec(player_context.turret_direction)
         self.playerContext = player_context  
         self.image = image
+
+    def render_entity(self):
+        self._render_entity(self.image, self.direction.get_orientation_angle(), self.position.as_tuple())
+    
+    def get_gamestate_object(self):
+        return ShotObject(Vec(self.position), Vec(self.direction))
 
 shots_cooldown_expiry = {}    
 def check_shots_fired(player_context, operator_actions):
@@ -297,7 +321,7 @@ def game_loop(tanks):
             tankActions = tank.operator.get_tank_action(gamestate)
             if tankActions:
                 tank.apply_turn(tankActions)
-                tank.move_player(tankActions)
+                tank.move_check_boundary(tankActions.engine, tank_maxspeed)
                 shot = check_shots_fired(tank, tankActions)
                 if not shot is None:
                     shots.append(shot)
@@ -305,8 +329,7 @@ def game_loop(tanks):
             tank.render_entity()
                         
         for ss in shots:
-            shotOp = OperatorActions(0,1.0,False)
-            if ss.move_player(shotOp, shot_speed):
+            if ss.move_check_boundary(1, shot_speed):
                 #shot reached border
                 shots.remove(ss)
                 explosions.append(Explosion(ss.position.as_tuple(),1))
