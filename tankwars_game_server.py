@@ -24,11 +24,6 @@ import server_settings
 ## Test out making an operator
 ## Test with multiple clients..
 
-## OptionaL_
-## Turning turret...
-
-## BUGS!!
-
 fullscreen = 0 #pygame.FULLSCREEN
 display_size = Vec(1200, 800)
 
@@ -320,12 +315,12 @@ def game_loop(tanks):
                                     [ss.get_gamestate_object() for ss in shots])
             tankActions = tank.operator.get_tank_action(gamestate)
             if tankActions:
-                tank.apply_turn(tankActions)
-                tank.move_check_boundary(tankActions.engine, tank_maxspeed)
                 shot = check_shots_fired(tank, tankActions)
                 if not shot is None:
                     shots.append(shot)
-        
+                tank.apply_turn(tankActions)
+                tank.move_check_boundary(tankActions.engine, tank_maxspeed)
+                
             tank.render_entity()
                         
         for ss in shots:

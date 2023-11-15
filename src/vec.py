@@ -15,7 +15,7 @@ class Vec:
             self.y = Y
         
     def get_orientation_angle(self):
-        """ Get angle of orientation """
+        """ Get angle of orientation in degrees """
         return math.degrees(math.atan2(self.y, self.x))
         
     def as_tuple(self):
@@ -49,9 +49,9 @@ class Vec:
             return Vec(self.x / mag, self.y / mag)
         return Vec(self.x, self.y)
 
-    def rotate(self, angle):
+    def rotate(self, angle_degrees):
         """ Rotate this vector by 'angle' degrees. """
-        radians = math.radians(angle)
+        radians = math.radians(angle_degrees)
         cos_angle = math.cos(radians)
         sin_angle = math.sin(radians)
         return Vec(

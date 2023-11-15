@@ -1,9 +1,14 @@
-from src.json_protocol import JSONProtocol
+import traceback
 import socket
 import time
+import json
+from src.json_protocol import JSONProtocol
+from src.vec import Vec
 from tank_operator import TankOperator
 from tank_operator import OperatorActions
 from tank_operator import GameState
+from tank_operator import TankObject
+from tank_operator import ShotObject
 
 from src.tcp_server import TcpServer
 from src.tcp_client import TcpClient
@@ -71,7 +76,23 @@ class OperatorTCPadaptor_Client:
         self._messages_received = 0
         self._actions_sent = 0
         self.game_over_message = None
+    
+    def deserialize_game_state(self,data):
+        def dict_to_vec(d):
+            return Vec(d['x'], d['y'])
 
+        def dict_to_tank(d):
+            return TankObject(dict_to_vec(d['position']), dict_to_vec(d['direction']), dict_to_vec(d['turret_direction']))
+
+        def dict_to_shot(d):
+            return ShotObject(dict_to_vec(d['position']), dict_to_vec(d['direction']))
+
+        tank = dict_to_tank(data['tank'])
+        other_tanks = [dict_to_tank(t) for t in data['other_tanks']]
+        shots = [dict_to_shot(s) for s in data['shots']]
+
+        return GameState(tank, other_tanks, shots)
+    
     def run_client(self):
         try:
             received_bytes = self.tcp_client.run_client(self.bytes_to_send)
@@ -82,15 +103,19 @@ class OperatorTCPadaptor_Client:
                     self._messages_received += len(jsonresponses)
                     lastmessage_json = jsonresponses[-1] # JUST USE LAST GAMESTATE others are stale..
                     try:
-                        gamestate = GameState(**lastmessage_json)
-                        action = self.tankoperator.get_tank_action(gamestate)
-                        self.bytes_to_send = self.json_protocol.encode(action)
-                        self._actions_sent += 1
+                        gamestate = self.deserialize_game_state(lastmessage_json)
+                        try:
+                            action = self.tankoperator.get_tank_action(gamestate)
+                            self.bytes_to_send = self.json_protocol.encode(action)
+                            self._actions_sent += 1
+                        except Exception:
+                            print(traceback.format_exc())
                     except:
                         try:
                             self.game_over_message = GameOverMessage(**lastmessage_json).game_over_message
                         except:
                             print("Message from server not understood: " + str(lastmessage_json))
+
         except:
             self.json_protocol = JSONProtocol()
             self.bytes_to_send = None
