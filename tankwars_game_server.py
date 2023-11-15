@@ -26,7 +26,6 @@ import server_settings
 ## Turning turret...
 
 ## BUGS!!
-## tank/shot hitbox is too big? tank_rect should be position = center and rotated as image!
 
 fullscreen = 0 #pygame.FULLSCREEN
 display_size = Vec(1200, 800)
@@ -53,7 +52,7 @@ icon = pygame.image.load("res/tank_alpha.png")
 
 # geometry of tank and its turret
 
-shotImage = pygame.transform.scale(pygame.image.load('res/shot.png'), (20,8))
+shot_image = pygame.transform.scale(pygame.image.load('res/shot.png'), (20,8))
 
 pygame.display.set_icon(icon)
 
@@ -193,22 +192,38 @@ class GameEntity:
         cappedY, self.position.y = cap_value_zero_max(self.position.y, display_size.y)
         
         return cappedX or cappedY
+    
+    def render_entity(self):
+        ent_image = pygame.transform.rotate(self.image, -1.0 * self.get_orientation_angle())
+        ent_image_rect = ent_image.get_rect(center=self.position.as_tuple())
+
+        # Draw rotated images
+        game_layout_display.blit(ent_image, ent_image_rect.topleft)
+        
+    def get_intersection_geometry(self):
+        # pygame cant rotate rectangles, so It will never be pixel perfect
+        width, height = self.image.get_size()
+        wh = max(width, height) #int((self.image.width + self.image.height) / 2.0)
+        rect = pygame.Rect((0,0),(wh,wh))
+        rect.center = self.position.as_tuple()
+        return rect
 
 class PlayerContext(GameEntity):   
     def __init__(self, posVec, directionVec, operator, image):
         self.position = posVec
         self.direction = directionVec
-        self.alive = True
+        # self.alive = True
         self.name = operator.get_operator_name()
         self.operator = operator
         self.image = image
         self.kills = 0
 
 class Shot(GameEntity):
-    def __init__(self, player_context):
+    def __init__(self, player_context, image):
         self.position = Vec(player_context.position)
         self.direction = Vec(player_context.direction)
-        self.playerContext = player_context   
+        self.playerContext = player_context  
+        self.image = image
 
 shots_cooldown_expiry = {}    
 def check_shots_fired(player_context, operator_actions):
@@ -224,16 +239,9 @@ def check_shots_fired(player_context, operator_actions):
             pass    
         
         if not cooldown:        
-            shot = Shot(player_context)
+            shot = Shot(player_context, shot_image)
             shots_cooldown_expiry[player_context] = time.time() + tank_shots_cooldown
     return shot
-        
-def render_entity(ent, image):
-    ent_image = pygame.transform.rotate(image, -1.0 * ent.get_orientation_angle())
-    ent_image_rect = ent_image.get_rect(center=ent.position.as_tuple())
-
-    # Draw rotated images
-    game_layout_display.blit(ent_image, ent_image_rect.topleft)
 
 class Explosion:
     def __init__(self, center, duration):
@@ -294,7 +302,7 @@ def game_loop(tanks):
                 if not shot is None:
                     shots.append(shot)
         
-            render_entity(tank, tank.image)
+            tank.render_entity()
                         
         for ss in shots:
             shotOp = OperatorActions(0,1.0,False)
@@ -303,20 +311,21 @@ def game_loop(tanks):
                 shots.remove(ss)
                 explosions.append(Explosion(ss.position.as_tuple(),1))
                 
-            render_entity(ss, shotImage)
+            ss.render_entity()
         
         for ee in explosions:
             draw_explosion(game_layout_display, ee)
             if not ee.alive:
                 explosions.remove(ee)
         
-        ## Check for win conditions!
+        ## Check for impacts
         for shot in shots:
-            shot_rect = pygame.Rect(shot.position.x, shot.position.y, shotImage.get_width(), shotImage.get_height())
+            shot_rect = shot.get_intersection_geometry()
             for tank in tanks:
                 if tank != shot.playerContext:
-                    tank_rect = pygame.Rect(tank.position.x, tank.position.y, tank_image_size[0], tank_image_size[1])
-                    # TODO: tank_rect should be position = center and rotated as image!
+                    tank_rect = tank.get_intersection_geometry()
+                    # pygame.draw.rect(game_layout_display, red, tank_rect, 3)  # width = 3
+                    
                     if shot_rect.colliderect(tank_rect):
                         shot.playerContext.kills += 1
                         shots.remove(shot)
