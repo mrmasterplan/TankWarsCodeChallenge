@@ -14,14 +14,9 @@ from tank_operator import ShotObject
 from src.countdown_timer import CountDownTimer
 from src.screens import game_wait_for_players_screen
 from src.screens import msg_screen_topleft
+from src.health_bar import draw_health_bar
 import server_settings
 
-## Create  instructions.
-### Installation of python + pygame tips.
-### What files to look in..
-### Where to start, what is in gamestate+operatoractions units, examples?
-### Game rules
-## Test out making an operator
 ## Test with multiple clients..
 
 fullscreen = 0 #pygame.FULLSCREEN
@@ -35,13 +30,17 @@ tnk_width = 56
 tnk_height = 40
 tank_image_size = (tnk_width, tnk_height)
 
+#screen_space_to_world_space_scaling =  #
+tank_start_health = 200
+max_shot_damage = 100
+
 ##Movement:
 tank_turn_speed = math.radians(7.5)
 tank_turret_turn_speed = math.radians(20)
 tank_maxspeed = 3.5
 
 shot_speed = 15.0
-tank_shots_cooldown = 1.2  #seconds
+tank_shots_cooldown = 5  #seconds
 
 # Some resources
 game_layout_display = pygame.display.set_mode(display_size.as_tuple(), flags=fullscreen)
@@ -211,6 +210,18 @@ class GameEntity:
         rect.center = self.position.as_tuple()
         return rect
 
+def calculate_damage(shot, tank):
+    line_direction = shot.direction.normalize()
+
+    point_vector = (tank.position - shot.position).normalize()
+    projection = point_vector.dot(line_direction)
+    closest_point_on_line = shot.position + line_direction * projection
+    distance_vector = tank.position - closest_point_on_line
+
+    dmg= max_shot_damage  * distance_vector.magnitude() / 60
+    # print(dmg)
+    return dmg
+
 class PlayerContext(GameEntity):   
     def __init__(self, posVec, directionVec, operator, image):
         self.position = posVec
@@ -222,10 +233,13 @@ class PlayerContext(GameEntity):
         self.image = image
         self.turret_image = turret_image
         self.kills = 0
+        self.health = tank_start_health
+        self.damage_dealt = 0
     
     def render_entity(self):
         self._render_entity(self.image, self.direction.get_orientation_angle(), self.position.as_tuple())
         self._render_entity(self.turret_image, self.turret_direction.get_orientation_angle(), self.position.as_tuple())
+        draw_health_bar(game_layout_display, self.position + Vec(0,-40), self.health / tank_start_health, size=(50, 5))
 
 
     def get_gamestate_object(self):
@@ -327,7 +341,7 @@ def game_loop(tanks):
             if ss.move_check_boundary(1, shot_speed):
                 #shot reached border
                 shots.remove(ss)
-                explosions.append(Explosion(ss.position.as_tuple(),1))
+                explosions.append(Explosion(ss.position.as_tuple(),0.5))
                 
             ss.render_entity()
         
@@ -345,15 +359,22 @@ def game_loop(tanks):
                     # pygame.draw.rect(game_layout_display, red, tank_rect, 3)  # width = 3
                     
                     if shot_rect.colliderect(tank_rect):
-                        shot.playerContext.kills += 1
                         shots.remove(shot)
-                        explosions.append(Explosion(tank.position.as_tuple(),3))
-                        tanks.remove(tank)
-                        #if tank was operated over network, send game over message
-                        try:
-                            tank.operator.send_game_over_message("Game Over: you lose")
-                        except:
-                            pass # probably not a OperatorTCPadaptor_Server
+                        explosions.append(Explosion(tank.position.as_tuple(),0.75))
+
+                        damage = calculate_damage(shot, tank)
+                        shot.playerContext.damage_dealt += damage
+                        tank.health -= damage
+                        
+                        if tank.health < 0:
+                            #tank dead
+                            shot.playerContext.kills += 1
+                            tanks.remove(tank)
+                            #if tank was operated over network, send game over message
+                            try:
+                                tank.operator.send_game_over_message("Game Over: you lose")
+                            except:
+                                pass # probably not a OperatorTCPadaptor_Server
         
         #tanksalive = [tt for tt in tanks if tt.alive]
         
