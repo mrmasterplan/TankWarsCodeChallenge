@@ -3,36 +3,50 @@
 from src.vec import Vec
 # Vec is a 2D vector with member attributes x and y.
 
-class GameObject:
+class TankObject:
+    def __init__(self, position, direction, turret_direction):
+        """
+        Represents a Tank in the game.
+
+        :param position: 2D Vector representing the tanks position on the game field. (Check out the Vec class in src/vec.py)
+        :param direction: 2D Vector representing the tanks facing direction.
+        :param turret_direction: 2D Vector representing the turrets facing direction.
+        """
+        self.position = position
+        self.direction = direction
+        self.turret_direction = turret_direction
+
+class ShotObject:
     def __init__(self, position, direction):
         """
-        Represents a general object in the game.
+        Represents a Tank in the game.
 
-        :param position: Vec instance representing the object's position on the game field.
-        :param direction: Vec instance representing the object's facing direction.
+        :param position: 2D Vector representing the shots position on the game field. (Check out the Vec class in src/vec.py)
+        :param direction: 2D Vector representing the shots facing direction.
         """
         self.position = position
         self.direction = direction
 
 class GameState:
-    def __init__(self, tank, other_tanks, shots):
+    def __init__(self, tank, other_tanks = [], shots = []):
         """
         Holds the current state of the game, providing necessary information for decision-making.
 
-        :param tank: GameObject representing the player's tank.
-        :param other_tanks: List of GameObjects representing other tanks in the game.
-        :param shots: List of GameObjects representing shots currently active in the game. Beware of incoming grenades!
+        :param tank: TankObject representing the player's own tank.
+        :param other_tanks: List of TankObject representing other tanks in the game.
+        :param shots: List of ShotObject representing shots currently active in the game. Beware of incoming grenades!
         """
         self.tank = tank
         self.other_tanks = other_tanks
         self.shots = shots
 
 class OperatorActions:
-    def __init__(self, turn = 0.0, engine = 0.0, shoot = False):
+    def __init__(self, turn = 0.0, turn_turret = 0.0, engine = 0.0, shoot = False):
         """
         Encapsulates the actions that a tank operator can take in a given frame.
         """
         self.turn = turn    # [-1.0 to 1.0] left to right respectively.
+        self.turn_turret = turn_turret    # [-1.0 to 1.0] left to right respectively.
         self.engine = engine  # [-1.0 to 1.0] reverse to full ahead.
         self.shoot = shoot  # Set to True to fire cannon! Beware that cannon has to reload between shots.
 

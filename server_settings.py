@@ -17,7 +17,7 @@ server_ip = 'localhost' #TODO change on LAN!
 def get_tank_operators_and_starting_positions():
     """ Edit to specify types of operators in game MIN two and MAX four players. """
     return {
-        "red"   : KeyboardOperator("WASD-tank", pygame.K_w,pygame.K_s, pygame.K_a, pygame.K_d, pygame.K_SPACE),
+        "red"   : DummyOperator(),
         "blue"  : KeyboardOperator("BlueBob"), #Default arrow keys
         "yellow": OperatorTCPadaptor_Server(server_ip),
         "green" : MyTankOperator(),
