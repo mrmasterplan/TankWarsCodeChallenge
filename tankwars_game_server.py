@@ -17,9 +17,10 @@ from src.screens import msg_screen_topleft
 from src.health_bar import draw_health_bar
 import server_settings
 
-## Test with multiple clients..
-
-fullscreen = 0 #pygame.FULLSCREEN
+fullscreen = 0 #
+if server_settings.server_fullscreen:
+    fullscreen = pygame.FULLSCREEN
+     
 display_size = Vec(1200, 800)
 
 game_time_out_secs = 4*60
@@ -391,8 +392,8 @@ def game_loop(tanks):
         timed_out, timer_string = count_down_timer.get_countdown_reached_and_timer_string()
         msg_screen_topleft(game_layout_display, timer_string,grey,(5,5),"vsmall")
         if timed_out:
-            max_kills = max(obj.kills for obj in tanks)
-            top_scorers = [obj for obj in tanks if obj.kills == max_kills]
+            max_score = max(obj.damage_dealt for obj in tanks)
+            top_scorers = [obj for obj in tanks if obj.damage_dealt == max_score]
             winner = ', '.join([tt.name for tt in top_scorers])
             for top_tank in top_scorers:
                 try:
