@@ -9,13 +9,13 @@ class KeyboardOperator(TankOperator):
                  leftKey = pygame.K_LEFT, 
                  rightKey = pygame.K_RIGHT, 
                  shootKey = pygame.K_KP0, 
-                 turretLeftKey = pygame.K_KP1,
-                 turretRightKey = pygame.K_KP2):
+                 turretLeftKey = pygame.K_a,
+                 turretRightKey = pygame.K_s):
         self.forwardKey = fwdKey #pygame.K_w
         self.backKey = backKey #pygame.K_s
         self.leftKey = leftKey #pygame.K_a
         self.rightKey = rightKey #pygame.K_d
-        self.shootKey = shootKey #pygame.K_SPACE
+        self.shootKey = pygame.K_SPACE
         self.turretLeftKey = turretLeftKey
         self.turretRightKey = turretRightKey
         self.name = name

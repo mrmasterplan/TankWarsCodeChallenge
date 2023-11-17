@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
-
+from dataclasses import dataclass
 from src.vec import Vec
 # Vec is a 2D vector with member attributes x and y.
 
+# @dataclass
 class TankObject:
+    # position
+    # direction
+    # turret_direction
+
     def __init__(self, position, direction, turret_direction):
         """
         Represents a Tank in the game.
@@ -16,6 +21,9 @@ class TankObject:
         self.direction = direction
         self.turret_direction = turret_direction
 
+    def __str__(self):
+        return f"TankObject({self.position},{self.direction},{self.turret_direction})"
+
 class ShotObject:
     def __init__(self, position, direction):
         """
@@ -26,6 +34,9 @@ class ShotObject:
         """
         self.position = position
         self.direction = direction
+
+    def __str__(self):
+        return f"ShotObject({self.position},{self.direction})"
 
 class GameState:
     def __init__(self, tank, other_tanks = [], shots = []):
