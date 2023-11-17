@@ -7,6 +7,9 @@ import math
 class MyTankOperator(TankOperator):
     def __init__(self):
         self.name = "Team 8"
+        self.last_pos = Vec(0,0)
+        self.direction_modifier = 1
+        self.wall_action_started = 0
 
     def __str__(self):
         return "Team 8 rules!!"
@@ -42,14 +45,37 @@ class MyTankOperator(TankOperator):
             if distance>10:
                 actions.engine=1.0
 
-        if gamestate.shots: # shot in the air
+        filtered_shots = filter_shots_away_from_tank(gamestate.shots,tank)
+        if filtered_shots: # shot in the air
             magnitude, distance, shot = distance_magnitude[0]
             print("closest shot", shot.position)
-            desired_pos = find_furthest_position(gamestate.shots)
+            desired_pos = find_furthest_position(filtered_shots)
             move_to_pos(desired_pos)
         else:
-            desired_pos = find_equidistant_point(gamestate.other_tanks)
-            move_to_pos(desired_pos)
+            # no shots in the air:
+            desired_direction = calculate_perpendicular_direction_to_nearest_tank(tank, gamestate.other_tanks).get_orientation_angle()
+            actual_direction = tank.direction.get_orientation_angle()
+            diff = ((actual_direction - desired_direction + 180) % 360) - 180
+
+            actions.turn = limit_and_map_angle(diff, 30)
+
+            actions.engine = self.direction_modifier * 1.0
+
+            moved_since_last = (tank.position - self.last_pos).magnitude()
+            self.last_pos = tank.position
+
+            print('size of move:',moved_since_last)
+            if moved_since_last<2:
+                if not self.wall_action_started:
+                    self.direction_modifier *=-1
+                    self.wall_action_started = True
+            else:
+                self.wall_action_started = False
+
+
+
+
+
 
 
         # Time to shoot
@@ -155,3 +181,56 @@ def limit_and_map_angle(angle, a):
     mapped_value = math.sin(angle / a * (math.pi / 2))
 
     return mapped_value
+
+
+def calculate_perpendicular_direction_to_nearest_tank(our_tank, other_tanks):
+    if not other_tanks:
+        return None
+
+    closest_tank = None
+    min_distance = float('inf')
+
+    for tank in other_tanks:
+        tank_to_our_tank = Vec(tank.position.x - our_tank.position.x, tank.position.y - our_tank.position.y)
+        distance = (tank_to_our_tank.x ** 2 + tank_to_our_tank.y ** 2) ** 0.5
+
+        if distance < min_distance:
+            min_distance = distance
+            closest_tank = tank
+
+    if closest_tank is not None:
+        direction_to_closest_tank = Vec(closest_tank.position.x - our_tank.position.x,
+                                        closest_tank.position.y - our_tank.position.y)
+
+        # Calculate the perpendicular direction by rotating 90 degrees
+        perpendicular_direction = Vec(-direction_to_closest_tank.y, direction_to_closest_tank.x)
+
+        # Normalize the perpendicular direction vector to make it a unit vector
+        magnitude = (perpendicular_direction.x ** 2 + perpendicular_direction.y ** 2) ** 0.5
+        if magnitude != 0:
+            perpendicular_direction.x /= magnitude
+            perpendicular_direction.y /= magnitude
+
+        return perpendicular_direction
+    else:
+        return None
+
+def dot_product(vec1, vec2):
+    return vec1.x * vec2.x + vec1.y * vec2.y
+
+def filter_shots_away_from_tank(shots, our_tank):
+    filtered_shots = []
+
+    for shot in shots:
+        # Calculate the vector from our tank to the shot
+        tank_to_shot = Vec(shot.position.x - our_tank.position.x, shot.position.y - our_tank.position.y)
+
+        # Calculate the dot product between the shot's direction and the vector to the shot
+        dot_prod = dot_product(shot.direction, tank_to_shot)
+
+        # If the dot product is non-negative, the shot is moving towards or directly away from us
+        # We want to keep shots with non-negative dot products
+        if dot_prod < 0:
+            filtered_shots.append(shot)
+
+    return filtered_shots
